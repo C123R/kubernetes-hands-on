@@ -4,11 +4,6 @@ This set of hands-on covers fundamentals of Kubernetes.
 
 It will take you through all required basics to get started with Kubernetes. By the end of this hands-on, you should able to deploy demo application.
 
-1. [Prerequisites](#prerequisites)
-1. [What it is not](#what-it-is-not)
-1. [What is Kubernetes? What is it used for?](#what-is-kubernetes-what-is-it-used-for)
-1. [Glossary](#glossary)
-
 ## kubectl
 
 `kubectl` is a Kubernetes CLI client. You will use it to create, delete and inspect various Kubernetes objects.
