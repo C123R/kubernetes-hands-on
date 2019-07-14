@@ -4,6 +4,11 @@ This set of hands-on covers fundamentals of Kubernetes.
 
 It will take you through all required basics to get started with Kubernetes. By the end of this hands-on, you should able to deploy demo application.
 
+1. [Prerequisites](#prerequisites)
+1. [What it is not](#what-it-is-not)
+1. [What is Kubernetes? What is it used for?](#what-is-kubernetes-what-is-it-used-for)
+1. [Glossary](#glossary)
+
 ## kubectl
 
 `kubectl` is a Kubernetes CLI client. You will use it to create, delete and inspect various Kubernetes objects.
@@ -85,6 +90,8 @@ curl https://raw.githubusercontent.com/C123R/kubernetes-hands-on/master/kubeconf
 
     `kubectl get <resource-name> <object-name>`
 
+    For example:
+
     ```sh
     kubectl get pods nginx
     ```
@@ -92,6 +99,8 @@ curl https://raw.githubusercontent.com/C123R/kubernetes-hands-on/master/kubeconf
     If you need more detailed information about a particular object, you can use **describe**.
 
     `kubectl describe <resource-name> <object-name>`
+
+    For example:
 
     ```sh
     kubectl describe pods nginx
@@ -106,6 +115,7 @@ curl https://raw.githubusercontent.com/C123R/kubernetes-hands-on/master/kubeconf
 - **Creating, Updating, and Destroying Kubernetes Resources**
 
     `kubectl apply` is the the recommended way of managing Kubernetes applications.  
+    For example:
 
      ```sh
     kubectl apply -f examples/pods/pod.yaml
@@ -116,6 +126,8 @@ curl https://raw.githubusercontent.com/C123R/kubernetes-hands-on/master/kubeconf
     You can still make changes to this `examples/pods/pod.yaml` and apply it again to update the object, or you can use `edit` command to make changes interactively.
 
     `kubectl edit <resource-name> <obj-name>`
+
+    For example:
 
     ```sh
     kubectl edit pod nginx
@@ -137,16 +149,115 @@ curl https://raw.githubusercontent.com/C123R/kubernetes-hands-on/master/kubeconf
     `kubectl delete <resource-name> <obj-name>`
 
     and if object was created using apply:
+
+    For example:
+
     ```sh
     kubectl delete -f examples/pods/pod.yaml
     ```
 
-- **Debugging**
+- **Troubleshoot and Debugging Commands**
 
-    Important debugging commands 
+    To get the logs for a container in a pod
+
+    `kubectl logs <resource-name> <obj-name>`
+
+    For example:
+
     ```sh
-    kubectl logs <pod-name>
-    kubectl exec -it <pod-name> -- bash
+    kubectl logs nginx
     ```
-    
 
+    You can also execute command into container
+
+    `kubectl exec -it <pod-name> -- bash`
+
+    For example:
+
+    ```sh
+    kubectl exec -it nginx -- bash
+    kubectl exec -it nginx -- date
+    ```
+
+    There is way to create a proxy between localhost and Kubernetes API Server.
+
+     ```sh
+    kubectl proxy
+    ```
+
+    So you can practically access all kubernetes internal services from localhost now. For instance, you can access Kubernetes Dashboard:
+
+    http://localhost:8001/api/v1/namespaces/kube-system/services/kubernetes-dashboard/proxy/#!/overview?namespace=default
+
+## **Basic Kubernetes Objects**
+
+### **Namespace**
+
+```sh
+kubectl get namespaces
+
+kubectl create namespace $(whoami)
+```
+
+### **POD**
+
+A Pod is the basic building block of K8s Objects.
+
+```sh
+apiVersion: v1  
+kind: Pod           # type of k8s object
+metadata:
+  name: nginx
+  labels:
+    env: test
+# spec consists of the core information about pod
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+  ports:
+    - name: http
+      containerPort: 80
+```
+
+Lets create a pod running nginx container:
+
+```sh
+kubectl apply -f https://raw.githubusercontent.com/C123R/kubernetes-hands-on/master/examples/pods/pod.yaml -n $(whoami)
+```
+
+```sh
+kubectl get pods -n $(whoami)
+NAME    READY   STATUS    RESTARTS   AGE
+nginx   1/1     Running   0          31s
+```
+
+You can get the complete pod manifest with output option -o yaml
+
+```sh
+kubectl get pods -n $(whoami) -o yaml
+```
+
+Now view the details:
+
+```sh
+kubectl describe pod nginx -n $(whoami)
+```
+
+To check the logs:
+
+```sh
+kubectl logs nginx -n $(whoami)
+```
+
+Now you can access nginx pod with `port-forward`:
+
+```sh
+kubectl port-forward nginx 8080:80 -n $(whoami)
+```
+
+Lets read nginx.conf file from our nginx container:
+
+```sh
+kubectl exec -it nginx -n $(whoami) -- cat /etc/nginx/nginx.conf
+```
