@@ -7,6 +7,7 @@ It will take you through all required basics to get started with Kubernetes. By 
 1. [**Kubectl** - Kubernetes Command line tool](##kubectl)
 1. [**Pod** - Basic building block](#pod)
 1. [**ReplicaSet**](#ReplicaSet)
+1. [**Deployment**](#Deployment)
 
 ## kubectl
 
