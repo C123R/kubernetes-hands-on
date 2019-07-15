@@ -4,10 +4,8 @@ This set of hands-on covers fundamentals of Kubernetes.
 
 It will take you through all required basics to get started with Kubernetes. By the end of this hands-on, you should able to deploy demo application.
 
-1. [Prerequisites](#prerequisites)
-1. [What it is not](#what-it-is-not)
-1. [What is Kubernetes? What is it used for?](#what-is-kubernetes-what-is-it-used-for)
-1. [Glossary](#glossary)
+1. [**kubectl** - Kubernetes Command line tool](##kubectl)
+1. [**pod** - Basic building block](#pod)
 
 ## kubectl
 
@@ -227,6 +225,8 @@ kubectl apply -f https://raw.githubusercontent.com/C123R/kubernetes-hands-on/mas
 ```
 
 ```sh
+kubectl get pods --watch
+
 kubectl get pods -n $(whoami)
 NAME    READY   STATUS    RESTARTS   AGE
 nginx   1/1     Running   0          31s
@@ -260,4 +260,51 @@ Lets read nginx.conf file from our nginx container:
 
 ```sh
 kubectl exec -it nginx -n $(whoami) -- cat /etc/nginx/nginx.conf
+```
+
+**But as you know, Pod is a smallest deployable unit and not a single container**, you can run multiple containers in one POD, which will share the network namespace(IP and Port space etc.) and volumes.
+
+For example:
+
+```sh
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-mc
+  labels:
+    env: test
+spec:
+  containers:
+  - name: nginx             #1 Container running nginx
+    image: nginx
+    ports:
+    - name: http
+      containerPort: 80
+    volumeMounts:
+    - name: content
+      mountPath: /usr/share/nginx/html
+
+  - name: content-writer    #2 Container updating nginx default html page.
+    image: debian
+    volumeMounts:
+    - name: content
+      mountPath: /html
+    command: ["/bin/sh", "-c"]
+    args:
+      - while true; do
+            echo "<h1>Current time:$(date +%T)</h1>" > /html/index.html;
+          sleep 1;
+        done
+
+  volumes:                  # Volume which will be shared
+  - name: content
+    emptyDir: {}            # If POD gets removed, this data will be lost...but its safe if container is crashing
+```
+
+Try this:
+
+```sh
+kubectl apply -f https://raw.githubusercontent.com/C123R/kubernetes-hands-on/master/examples/pods/multiContainerPod.yaml -n $(whoami)
+
+kubectl port-forward nginx-mc -n $(whoami) 8080:80
 ```
