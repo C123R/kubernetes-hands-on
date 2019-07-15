@@ -7,6 +7,7 @@ It will take you through all required basics to get started with Kubernetes. By 
 1. [**kubectl** - Kubernetes Command line tool](##kubectl)
 1. [**pod** - Basic building block](#pod)
 
+
 ## kubectl
 
 `kubectl` is a Kubernetes CLI client. You will use it to create, delete and inspect various Kubernetes objects.
