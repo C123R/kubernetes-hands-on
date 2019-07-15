@@ -3,7 +3,7 @@ kind: Pod
 metadata:
   name: nginx-mc
   labels:
-    env: test
+    env: demo
 spec:
   containers:
   - name: nginx

@@ -4,9 +4,9 @@ This set of hands-on covers fundamentals of Kubernetes.
 
 It will take you through all required basics to get started with Kubernetes. By the end of this hands-on, you should able to deploy demo application.
 
-1. [**kubectl** - Kubernetes Command line tool](##kubectl)
-1. [**pod** - Basic building block](#pod)
-
+1. [**Kubectl** - Kubernetes Command line tool](##kubectl)
+1. [**Pod** - Basic building block](#pod)
+1. [**ReplicaSet**](#ReplicaSet)
 
 ## kubectl
 
@@ -208,7 +208,7 @@ kind: Pod           # type of k8s object
 metadata:
   name: nginx
   labels:
-    env: test
+    env: demo
 # spec consists of the core information about pod
 spec:
   containers:
@@ -309,3 +309,105 @@ kubectl apply -f https://raw.githubusercontent.com/C123R/kubernetes-hands-on/mas
 
 kubectl port-forward nginx-mc -n $(whoami) 8080:80
 ```
+
+### **ReplicaSet**
+
+One of the main reason bare pods cant be deployed directly on Production environment as it could die for many reasons like Node failure, ran out of resources etc. So we cant keep track on number of running PODs.
+
+**ReplicaSet/ReplicaController** is one level above the Pod that ensures a certain number of PODs are always running.
+
+```sh
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: frontend
+spec:
+  replicas: 3                               # Number of PODs
+  selector:                                 # Pod Label Selector
+    matchLabels:
+      env: demo
+  template:                                 # Pod Template
+    metadata:
+      labels:
+        env: demo
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - name: http
+          containerPort: 80
+```
+
+```sh
+kubectl create -f https://raw.githubusercontent.com/C123R/kubernetes-hands-on/master/examples/replicaSet/replicaSet.yaml  -n $(whoami)
+```
+
+```sh
+kubectl get rs -n $(whoami)
+```
+
+The difference between a replica set and a replication controller - replica set supports **set-based selector** requirements whereas a replication controller only supports **equality-based selector** requirements.
+
+**ReplicaSet**
+```sh
+spec:
+  replicas: 3
+  selector: 
+    matchLabels: 
+      tier: frontend
+```
+
+**ReplicaController**
+```sh
+spec:
+  replicas: 1  
+  selector:    
+    name: frontend
+````
+
+### **Deployment**
+
+**Deployment** is one level above the ReplicaSet/Replication Controller which keeps set of identical pods running and upgrade them in a controlled way.
+
+```sh
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.7.9
+        ports:
+        - containerPort: 80
+```
+
+Create a deployment:
+```sh
+kubectl apply -f https://k8s.io/examples/controllers/nginx-deployment.yaml -n $(whoami)
+````
+
+Get the deployments:
+```sh
+kubectl get deployments -n $(whoami)
+
+kubectl get rs -n $(whoami)
+
+kubectl get pods --show-labels -n $(whoami)
+```
+
+Note:  `pod-template-hash` allows us to know which pods have been created by which ReplicaSet.
+
+Horizontal Pod Autoscalers (HPA)!!!
