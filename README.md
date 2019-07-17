@@ -504,4 +504,4 @@ kubectl scale deployment nginx-deployment --replicas=5 -n $(whoami)
 
 ## Demo Application
 
-Lets deploy demo application([k8s-click-counter](https://github.com/C123R/k8s-click-counter#k8s-click-counter)) using above discussed objects - Deployment + Services.
+Lets deploy our first demo application([k8s-click-counter](https://github.com/C123R/k8s-click-counter#k8s-click-counter)) using above discussed objects - Deployment + Services.
