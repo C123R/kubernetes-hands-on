@@ -11,6 +11,7 @@ spec:
     metadata:
       labels:
         env: demo
+        foo: bar
     spec:
       containers:
       - name: nginx
