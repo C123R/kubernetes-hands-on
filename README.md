@@ -9,6 +9,7 @@ It will take you through all required basics to get started with Kubernetes. By 
 1. [**ReplicaSet**](#ReplicaSet)
 1. [**Deployment**](#Deployment)
 1. [**Service**](#Service)
+1. [**Configuration Management**](#Configuration)
 
 ## kubectl
 
@@ -508,7 +509,7 @@ Scaling replicas is as easy as:
 kubectl scale deployment nginx-deployment --replicas=5 -n $(whoami)
 ```
 
-### **Configuration Management**
+### **Configuration**
 
 The 3rd factor (Configuration) of the [Twelve-Factor App Methodology](https://12factor.net/config) states:
 
