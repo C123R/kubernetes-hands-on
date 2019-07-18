@@ -605,18 +605,75 @@ The 3rd factor (Configuration) of the [Twelve-Factor App Methodology](https://12
         volumes:
             - name: config-volume
             configMap:
-                # Provide the name of the ConfigMap containing the files you want
-                # to add to the container
                 name: special-config
         restartPolicy: Never
     ```
 
     ```sh
     kubectl create -f https://kubernetes.io/examples/pods/pod-configmap-volume.yaml -n $(whoami)
+
+    kubectl logs dapi-test-pod -n $(whoami)
+    SPECIAL_LEVEL
+    SPECIAL_TYPE
     ```
 
+    With Specific path in the Volume
+
+    ```yaml
+    volumes:
+    - name: config-volume
+      configMap:
+        name: special-config
+        items:
+        - key: SPECIAL_LEVEL
+          path: keys
+    ```
+
+    This can be access from path `cat /etc/config/keys`
+
+    **Caution**: If there are some files in the /etc/config/ directory, they will be deleted.
+
+- **Secret**
+
+Kubernetes secret objects let you store and manage sensitive information, such as passwords, OAuth tokens, and ssh keys.
+
+You can use `kubectl create secret` to create new secret in your cluster:  
+
+` kubectl create secret [flags] [options]`
+
+Lets create our first secret using --form-env-file option
+
+```sh
+kubectl create secret generic my-secret --from-env-file=/tmp/config.env -n $(whoami)
+
+kubectl get secrets my-secret -o yaml -n $(whoami)
+```
+
+How to use secret in PODs:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secret-env-pod
+spec:
+  containers:
+  - name: mycontainer
+    image: redis
+    env:
+      - name: SECRET_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: mysecret
+            key: username
+      - name: SECRET_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: mysecret
+            key: password
+  restartPolicy: Never
+```
 
 ## Demo Application
 
 Lets deploy our first demo application([k8s-click-counter](https://github.com/C123R/k8s-click-counter#k8s-click-counter)) using above discussed objects - Deployment + Services.
-
