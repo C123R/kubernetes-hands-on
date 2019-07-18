@@ -1,7 +1,7 @@
 apiVersion: v1
-  kind: ConfigMap
-  metadata:
-     name: special-config
-  data:
+kind: ConfigMap
+metadata:
+   name: special-config
+   data:
       SPECIAL_LEVEL: very
       SPECIAL_TYPE: charm

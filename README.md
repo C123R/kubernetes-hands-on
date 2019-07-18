@@ -584,7 +584,7 @@ The 3rd factor (Configuration) of the [Twelve-Factor App Methodology](https://12
     ```
 
     ```sh
-    kubectl create -f https://raw.githubusercontent.com/C123R/kubernetes-hands-on/master/examples/configmap/config-map.yaml -n $(whoami)
+    kubectl create -f https://raw.githubusercontent.com/C123R/kubernetes-hands-on/master/configmap/config-map.yaml -n $(whoami)
     ```
 
     We can create a volume in POD to store this confimap:
