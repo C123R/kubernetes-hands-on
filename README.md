@@ -44,7 +44,7 @@ You can specify other kubeconfig files by setting the `KUBECONFIG` environment v
 - KUBECONFIG environment variable, if specified
 - $HOME/.kube/config file
 
-```sh
+```yaml
 apiVersion: v1
 clusters:
 - cluster:
@@ -66,6 +66,8 @@ users:
 ```
 
 You can use [sample](https://raw.githubusercontent.com/C123R/kubernetes-hands-on/master/kubeconfig/sample-kubeconfig.yaml) kubeconfig for playing around with `kubectl config` command.
+
+
 
 ```sh
 curl https://raw.githubusercontent.com/C123R/kubernetes-hands-on/master/kubeconfig/sample-kubeconfig.yaml > ~/.kube/config
@@ -188,7 +190,11 @@ curl https://raw.githubusercontent.com/C123R/kubernetes-hands-on/master/kubeconf
 
     So you can practically access all kubernetes internal services from localhost now. For instance, you can access Kubernetes Dashboard:
 
-    http://localhost:8001/api/v1/namespaces/kube-system/services/kubernetes-dashboard/proxy/#!/overview?namespace=default
+    http://localhost:8001/api/v1/namespaces/kube-system/services/kubernetes-dashboard/proxy
+
+    **Important:** Exposing kubernetes dashboard is not recommended, even if you are doing it make sure you have authentication - to avoid security issues like what [Tesla](https://blog.heptio.com/on-securing-the-kubernetes-dashboard-16b09b1b7aca) had.
+
+
 
 ## **Basic Kubernetes Objects**
 
@@ -204,7 +210,7 @@ kubectl create namespace $(whoami)
 
 A Pod is the basic building block of K8s Objects.
 
-```sh
+```yaml
 apiVersion: v1  
 kind: Pod           # type of k8s object
 metadata:
@@ -269,7 +275,7 @@ kubectl exec -it nginx -n $(whoami) -- cat /etc/nginx/nginx.conf
 
 For example:
 
-```sh
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -326,7 +332,7 @@ kubectl get svc -n $(whoami) -o yaml
 
 As you can see under the hood, it does a POST request to the API server with service defination to create a new instance.
 
-```sh
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -352,7 +358,7 @@ One of the main reason bare pods cant be deployed directly on Production environ
 
 **ReplicaSet/ReplicaController** is one level above the Pod that ensures a certain number of PODs are always running.
 
-```sh
+```yaml
 apiVersion: apps/v1
 kind: ReplicaSet
 metadata:
@@ -387,20 +393,20 @@ The difference between a replica set and a replication controller - replica set 
 
 **ReplicaSet:**
 
-```sh
+```yaml
 spec:
   replicas: 3
-  selector: 
-    matchLabels: 
+  selector:
+    matchLabels:
       tier: frontend
 ```
 
 **ReplicaController:**
 
-```sh
+```yaml
 spec:
   replicas: 1  
-  selector:    
+  selector:
     name: frontend
 ````
 
@@ -410,7 +416,7 @@ spec:
 
 **Deployment is now the recommended way to set up replication in Kubernetes.**
 
-```sh
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -502,6 +508,115 @@ Scaling replicas is as easy as:
 kubectl scale deployment nginx-deployment --replicas=5 -n $(whoami)
 ```
 
+### **Configuration Management**
+
+The 3rd factor (Configuration) of the [Twelve-Factor App Methodology](https://12factor.net/config) states:
+
+**Configuration that varies between deployments should be stored in the environment.**
+
+- **ConfigMap**
+
+    ConfigMaps(one of K8s API Resource) bind configuration files, command-line arguments, environment variables, port numbers, and other configuration artifacts to your Pods' containers and system components at runtime.
+
+    `kubectl create configmap NAME [--from-file=[key=]source] [--from-literal=key1=value1] [--dry-run] [options]`
+
+    For example:
+
+- Create ConfigMaps from literal values:
+
+    ```sh
+    kubectl create configmap special-config --from-literal=SPECIAL_LEVEL=very --from-literal=SPECIAL_TYPE=charm -n $(whoami)
+    ```
+
+    Lets create a pod which will consume this config:
+
+    ```sh
+    kubectl create -f https://kubernetes.io/examples/pods/pod-configmap-env-var-valueFrom.yaml -n $(whoami)
+    ```
+
+    ```yaml
+    apiVersion: v1
+    kind: Pod
+    metadata:
+    name: dapi-test-pod
+    spec:
+    containers:
+        - name: test-container
+        image: k8s.gcr.io/busybox
+        command: [ "/bin/sh", "-c", "echo $(SPECIAL_LEVEL_KEY) $(SPECIAL_TYPE_KEY)" ]
+        env:
+            - name: SPECIAL_LEVEL_KEY
+            valueFrom:
+                configMapKeyRef:
+                name: special-config
+                key: SPECIAL_LEVEL
+            - name: SPECIAL_TYPE_KEY
+            valueFrom:
+                configMapKeyRef:
+                name: special-config
+                key: SPECIAL_LEVEL
+    restartPolicy: Never  
+    ```
+
+- Create ConfigMaps from env file:
+
+    ```sh
+    cat << EOF > /tmp/config.env
+    SPECIAL_LEVEL=verrrry
+    SPECIAL_TYPE=charmmm
+    EOF
+    ```
+
+    ```sh
+    kubectl create configmap special-config --from-env-file=/tmp/config.env -n $(whoami)
+    ```
+
+- Or we can directly create configmap object using kubectl:
+
+    ```yaml
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+        name: special-config
+    data:
+        SPECIAL_LEVEL: very
+        SPECIAL_TYPE: charm
+    ```
+
+    ```sh
+    kubectl create -f https://raw.githubusercontent.com/C123R/kubernetes-hands-on/master/examples/configmap/config-map.yaml -n $(whoami)
+    ```
+
+    We can create a volume in POD to store this confimap:
+
+    ```yaml
+    apiVersion: v1
+    kind: Pod
+    metadata:
+    name: dapi-test-pod
+    spec:
+        containers:
+            - name: test-container
+            image: k8s.gcr.io/busybox
+            command: [ "/bin/sh", "-c", "ls /etc/config/" ]
+            volumeMounts:
+            - name: config-volume
+                mountPath: /etc/config
+        volumes:
+            - name: config-volume
+            configMap:
+                # Provide the name of the ConfigMap containing the files you want
+                # to add to the container
+                name: special-config
+        restartPolicy: Never
+    ```
+
+    ```sh
+    kubectl create -f https://kubernetes.io/examples/pods/pod-configmap-volume.yaml -n $(whoami)
+    ```
+
+
 ## Demo Application
 
 Lets deploy our first demo application([k8s-click-counter](https://github.com/C123R/k8s-click-counter#k8s-click-counter)) using above discussed objects - Deployment + Services.
+

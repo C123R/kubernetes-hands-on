@@ -14,7 +14,6 @@ spec:
     volumeMounts:
     - name: content
       mountPath: /usr/share/nginx/html
-
   - name: content-writer
     image: debian
     volumeMounts:
@@ -26,7 +25,6 @@ spec:
             echo "<h1>Current time:$(date +%T)</h1>" > /html/index.html;
           sleep 1;
         done
-
   volumes:
   - name: content
     emptyDir: {}
