@@ -683,4 +683,4 @@ Lets deploy our first demo application([k8s-click-counter](https://github.com/C1
 
 ## Helm
 
-See the dedicated [README](HELM).
+See the dedicated [README](HELM.MD)
