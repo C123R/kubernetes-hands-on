@@ -10,6 +10,8 @@ It will take you through all required basics to get started with Kubernetes. By 
 1. [**Deployment**](#Deployment)
 1. [**Service**](#Service)
 1. [**Configuration Management**](#Configuration)
+1. [**Volumes**](#Volumes)
+1. [**Kubernetes Package Manager**](#Helm)
 
 ## kubectl
 
@@ -678,3 +680,7 @@ spec:
 ## Demo Application
 
 Lets deploy our first demo application([k8s-click-counter](https://github.com/C123R/k8s-click-counter#k8s-click-counter)) using above discussed objects - Deployment + Services.
+
+## Helm
+
+See the dedicated [README](HELM).
