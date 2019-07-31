@@ -1,12 +1,6 @@
-# nginx: An advanced example chart
+# nginx: A example chart
 
-This Helm chart provides examples of some of Helm's more powerful
-features.
-
-**This is not a production-grade chart. It is an example.**
-
-The chart installs a simple nginx server according to the following
-pattern:
+This helm chart just provide basic feature of HELM Templating.
 
 - A `ConfigMap` is used to store the files the server will serve.
   ([templates/configmap.yaml](templates/configmap.yaml))
@@ -16,8 +10,7 @@ pattern:
   replica set ([templates/service.yaml](templates/service.yaml))
 
 The [values.yaml](values.yaml) exposes a few of the configuration options in the
-charts, though there are some that are not exposed there (like
-`.image`).
+charts.
 
 The [templates/_helpers.tpl](templates/_helpers.tpl) file contains helper templates. The leading
 underscore (`_`) on the filename is semantic. It tells the template renderer
@@ -28,6 +21,5 @@ Helpers (usually called "partials" in template languages) are an
 advanced way for developers to structure their templates for optimal
 reuse.
 
-You can deploy this chart with `helm install docs/examples/nginx`. Or
-you can see how this chart would render with `helm install --dry-run
---debug docs/examples/nginx`.
+You can deploy this chart with `helm install helm-example/nginx`. Or
+you can see how this chart would render with `helm install --dry-run --debug helm-example/nginx`.
