@@ -10,8 +10,8 @@ It will take you through all required basics to get started with Kubernetes. By 
 1. [**Deployment**](#Deployment)
 1. [**Service**](#Service)
 1. [**Configuration Management**](#Configuration)
-1. [**Volumes**](#Volumes)
-1. [**Kubernetes Package Manager**](#Helm)
+1. [**Volume**](#Volume)
+1. [**HELM** - Kubernetes Package Manager](#Helm)
 
 ## kubectl
 
@@ -675,6 +675,46 @@ spec:
             name: mysecret
             key: password
   restartPolicy: Never
+```
+
+### **Volume**
+
+A Kubernetes volume is essentially a directory accessible to all containers running in a pod.  
+
+- `node-local` types such as emptyDir or hostPath
+- `file-sharing` types such as nfs
+- `cloud provider-specific` types like azureDisk, awsElasticBlockStore, or gcePersistentDisk
+- special-purpose types like `secret`, `gitRepo`
+
+![K8sVolume](img/volume-mount.png)
+
+#### emptyDir:
+
+```yaml
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    ports:
+    - name: http
+      containerPort: 80
+    volumeMounts:
+    - name: content
+      mountPath: /usr/share/nginx/html
+  - name: content-writer
+    image: debian
+    volumeMounts:
+    - name: content
+      mountPath: /html
+    command: ["/bin/sh", "-c"]
+    args:
+      - while true; do
+            echo "<h1>Current time:$(date +%T)</h1>" > /html/index.html;
+          sleep 1;
+        done
+  volumes:
+  - name: content
+    emptyDir: {}
 ```
 
 ## Demo Application
