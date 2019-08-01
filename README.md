@@ -681,7 +681,7 @@ spec:
 
 A Kubernetes volume is essentially a directory accessible to all containers running in a pod.  
 
-- `node-local` types such as emptyDir or hostPath
+- `node-local` types such as emptyDir
 - `file-sharing` types such as nfs
 - `cloud provider-specific` types like azureDisk, awsElasticBlockStore, or gcePersistentDisk
 - special-purpose types like `secret`, `configmap`
