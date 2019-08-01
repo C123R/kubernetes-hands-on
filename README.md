@@ -684,7 +684,9 @@ A Kubernetes volume is essentially a directory accessible to all containers runn
 - `node-local` types such as emptyDir or hostPath
 - `file-sharing` types such as nfs
 - `cloud provider-specific` types like azureDisk, awsElasticBlockStore, or gcePersistentDisk
-- special-purpose types like `secret`, `gitRepo`
+- special-purpose types like `secret`, `configmap`
+
+**[-> List of Kubernetes supported volume types <-](https://kubernetes.io/docs/concepts/storage/volumes/#types-of-volumes)**
 
 ![K8sVolume](img/volume-mount.png)
 
@@ -716,6 +718,96 @@ spec:
   - name: content
     emptyDir: {}
 ```
+
+#### configmap or secret:
+
+```yaml
+spec:
+  containers:
+    - name: test-container
+      image: k8s.gcr.io/busybox
+      command: [ "/bin/sh", "-c", "ls /etc/config/" ]
+      volumeMounts:
+      - name: config-volume
+        mountPath: /etc/config
+  volumes:
+    - name: config-volume
+      configMap:
+        # Provide the name of the ConfigMap containing the files you want
+        # to add to the container
+        name: special-config
+```
+
+#### PersistentVolume and PersistentVolumeClaim
+
+A `PersistentVolume` (PV) is a piece of storage in the cluster that has been provisioned by an administrator or dynamically provisioned using Storage Classes.
+
+A `PersistentVolumeClaim` (PVC) is a request for storage by a user. It is similar to a pod. Pods consume node resources and PVCs consume PV resources. Pods can request specific levels of resources (CPU and Memory). Claims can request specific size and access modes (e.g., can be mounted once read/write or many times read-only).
+
+PVs are resources in the cluster. PVCs are requests for those resources and also act as claim checks to the resource.
+
+- **Static PV**: Cluster admin create PVs and then using kubernetes API resources can claim it.
+- **Dyanmic PV**: When none of the static PVs the administrator created matches a user’s PersistentVolumeClaim, the cluster may try to dynamically provision a volume specially for the PVC.
+
+So for instance, if we want to create Dynamic PVC in Azure, we can simply create PVC as mentioned below:
+
+```sh
+kubectl get sc
+```
+Creating PVC resource using Storage class:
+
+```yaml
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: azure-managed-disk
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: managed-premium
+  resources:
+    requests:
+      storage: 5Gi
+EOF
+```
+
+```sh
+kubectl get pvc
+```
+
+Claim as a Volume in POD
+
+```yaml
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      volumeMounts:
+      - mountPath: "/var/www/html"
+        name: nginx
+  volumes:
+    - name: nginx
+      persistentVolumeClaim:
+        claimName: azure-managed-disk
+EOF
+```
+```sh
+kubectl describe pods nginx
+```
+
+`ReadWriteOnce`: The volume can be mounted as read-write by a single node.  
+`ReadOnlyMany`: The volume can be mounted read-only by many nodes.  
+`ReadWriteMany`: The volume can be mounted as read-write by many nodes.  
+
+
+
+
 
 ## Demo Application
 

@@ -106,5 +106,6 @@ helm delete $(whoami) # This will still keep the history
 
 helm ls -a
 
+## Delete release with history as well
 helm delete --purge $(whoami)
 ```
